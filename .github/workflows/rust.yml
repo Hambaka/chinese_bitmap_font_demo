@@ -1,0 +1,43 @@
+name: Rust CI
+
+on: [push, pull_request, workflow_dispatch]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - os: windows-latest
+          TARGET: x86_64-pc-windows-msvc
+          EXTENSION: .exe
+        - os: ubuntu-latest
+          TARGET: x86_64-unknown-linux-gnu
+        - os: macos-latest
+          TARGET: aarch64-apple-darwin
+    
+    steps:
+    - name: Building for ${{ matrix.TARGET }}
+      run: echo "${{ matrix.TARGET }}"
+
+    - uses: actions/checkout@master
+    
+    - name: Update Rust
+      run: |
+        rustup update
+    
+    - name: Build executable binary file
+      run: |
+        cargo build --verbose --release --target=${{ matrix.TARGET }}
+    
+    - name: Rename file
+      run: cp target/${{ matrix.TARGET }}/release/chinese_bitmap_font_demo${{ matrix.EXTENSION }} chinese_bitmap_font_demo-${{ matrix.TARGET }}${{ matrix.EXTENSION }}
+
+    - uses: actions/upload-artifact@master
+      with:
+        name: chinese_bitmap_font_demo-${{ matrix.TARGET }}${{ matrix.EXTENSION }}
+        path: chinese_bitmap_font_demo-${{ matrix.TARGET }}${{ matrix.EXTENSION }}
